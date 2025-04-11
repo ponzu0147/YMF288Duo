@@ -1,5 +1,5 @@
 # YMF288Duo
-
+![YMF288Duo](https://github.com/user-attachments/assets/1f8c9a50-195d-4a89-a918-82659e48a041)
 ## 概要
 
 **YMF288Duo** は、YMF288-m を 2チップ使用し、FM音源と SSG 音源を物理的に分離して演奏することを目的としたオリジナル音源基板プロジェクトです。かつての YM2608（OPNA）の多彩な表現力をフルデジタル出力で再現し、USB経由で iPhone（PC88iOS）と連携することで、リアルタイムなハードウェア再生を可能にします。
