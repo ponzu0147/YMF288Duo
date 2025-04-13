@@ -1,11 +1,19 @@
 // S98Player.cpp
 #include "S98Player.h"
+#include "s98.h"
 #include <Arduino.h>
 
 File S98Player::s98File;
-S98Player::S98Header S98Player::header;
+S98Header S98Player::header;
 uint32_t S98Player::waitCounter = 0;
 uint8_t S98Player::currentAddress = 0;
+
+// ヘルパー：32bitリトルエンディアン読み取り
+uint32_t readLE32(File &file) {
+    uint8_t b[4];
+    if (file.read(b, 4) != 4) return 0;
+    return (uint32_t)b[0] | ((uint32_t)b[1] << 8) | ((uint32_t)b[2] << 16) | ((uint32_t)b[3] << 24);
+}
 
 bool S98Player::begin(const char* path) {
     s98File = SD.open(path);
@@ -21,16 +29,22 @@ void S98Player::end() {
 }
 
 bool S98Player::readHeader() {
-    if (s98File.readBytes(header.signature, 3) != 3) return false;
-    header.version = s98File.read();
-    for (int i = 0; i < 3; ++i) header.timerInfo[i] = s98File.read() | (s98File.read() << 8) | (s98File.read() << 16) | (s98File.read() << 24);
-    header.compressType = s98File.read() | (s98File.read() << 8) | (s98File.read() << 16) | (s98File.read() << 24);
-    header.tagOffset = s98File.read() | (s98File.read() << 8) | (s98File.read() << 16) | (s98File.read() << 24);
-    header.dataOffset = s98File.read() | (s98File.read() << 8) | (s98File.read() << 16) | (s98File.read() << 24);
-    header.loopOffset = s98File.read() | (s98File.read() << 8) | (s98File.read() << 16) | (s98File.read() << 24);
-    header.deviceCount = s98File.read() | (s98File.read() << 8) | (s98File.read() << 16) | (s98File.read() << 24);
+    if (s98File.readBytes(header.Magic, 3) != 3) return false;
+    header.Format = s98File.read();
+    header.Timer = readLE32(s98File);
+    header.Timer2 = readLE32(s98File);
+    header.Compress = readLE32(s98File);
+    header.NamePtr = readLE32(s98File);
+    header.DataPtr = readLE32(s98File);
+    header.LoopPtr = readLE32(s98File);
+    header.DeviceCount = readLE32(s98File);
+    header.DeviceInfo = readLE32(s98File);
 
-    s98File.seek(header.dataOffset);
+    Serial.printf("[S98Header] Ver: %d  Data: 0x%08lX  Loop: 0x%08lX  Devices: %lu\n",
+        header.Format, header.DataPtr, header.LoopPtr, header.DeviceCount);
+
+    // データ領域まで移動
+    s98File.seek(header.DataPtr);
     return true;
 }
 
@@ -58,7 +72,7 @@ void S98Player::handleCommand(uint8_t cmd) {
         uint8_t hi = s98File.read();
         waitCounter = lo | (hi << 8);
     } else if (cmd == 0xFD) {
-        s98File.seek(header.loopOffset);
+        s98File.seek(header.LoopPtr);
     }
     // 他のコマンドは未対応（将来拡張）
 }
