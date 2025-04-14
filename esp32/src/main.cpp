@@ -5,7 +5,7 @@
 #include "S98TimerPlayer.hpp"
 #include "AdpcmPlayer.hpp"
 #include "RhythmController.hpp"
-#include "config_s3.h"  // ESP32-S3 ピン定義
+#include "config.h"  // ESP32-S3 ピン定義
 
 S98TimerPlayer player;
 
