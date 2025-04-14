@@ -1,14 +1,15 @@
 #include "RhythmController.hpp"
 #include "RhythmPlayer.hpp"
 #include "Ymf288Driver.hpp"
+#include "config.h"
 
 namespace {
     bool hardwareAvailable = false;
 
     bool detectHardware() {
-        // 例: YMF288の/COMピンなどを読み取り、接続を確認（ダミー実装）
-        pinMode(34, INPUT_PULLUP);
-        return digitalRead(34) == LOW;  // 実装に応じて調整
+        // /COMピンなどでYMF288の存在確認（例：LOWなら接続）
+        pinMode(PIN_HW_DETECT, INPUT_PULLUP);
+        return digitalRead(PIN_HW_DETECT) == LOW;
     }
 }
 
@@ -20,7 +21,7 @@ void begin() {
     if (hardwareAvailable) {
         Ymf288Driver::begin();
     } else {
-        RhythmPlayer::begin();  // WAV再生の初期化
+        RhythmPlayer::begin();
     }
 }
 
