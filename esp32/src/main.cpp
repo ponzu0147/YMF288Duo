@@ -1,31 +1,39 @@
 #include <Arduino.h>
-#include <SPI.h>
+#include <FS.h>
 #include <SD.h>
-#include "S98Player.h"
+
+#include "S98TimerPlayer.hpp"
+#include "AdpcmPlayer.hpp"
+#include "RhythmController.hpp"
+#include "config_s3.h"  // ESP32-S3 ピン定義
+
+S98TimerPlayer player;
 
 void setup() {
     Serial.begin(115200);
     while (!Serial) delay(10);
+    Serial.println("YMF288Duo S98 TimerPlayer 起動");
 
-    // SPI初期化 (VSPI: SCK=18, MISO=19, MOSI=23)
-    SPI.begin(18, 19, 23);
-
-    // SDカード初期化
-    if (!SD.begin(5)) {
-        Serial.println("[ERROR] SDカード初期化失敗");
+    if (!SD.begin(PIN_SD_CS)) {
+        Serial.println("SDカード初期化失敗");
         while (1);
     }
-    Serial.println("[OK] SDカード初期化成功");
 
-    // S98再生開始
-    if (!S98Player::begin("/test.s98")) {
-        Serial.println("[ERROR] S98ファイルが開けません");
+    File s98File = SD.open("/music/test.s98");
+    if (!s98File) {
+        Serial.println("S98ファイル読み込み失敗");
         while (1);
     }
-    Serial.println("[OK] S98ファイル初期化成功");
+
+    AdpcmPlayer::begin();
+    RhythmController::begin();
+
+    player.begin(s98File);
+    player.start();
+
+    Serial.println("S98再生開始（タイマー割り込み）");
 }
 
 void loop() {
-    S98Player::update();
-    delay(1);  // 処理負荷を軽減（適宜調整）
+    // メインループでは何もしない（非ブロッキング再生）
 }
