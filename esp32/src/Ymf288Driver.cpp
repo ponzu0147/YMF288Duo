@@ -1,5 +1,5 @@
 #include "Ymf288Driver.hpp"
-#include "config_s3.h"  // ← S3用 config
+#include "config.h"  // ← S3用 config
 
 void setDataBus(uint8_t data) {
     digitalWrite(PIN_YMF_D0, (data >> 0) & 1);

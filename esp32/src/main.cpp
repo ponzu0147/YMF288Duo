@@ -1,39 +1,39 @@
 #include <Arduino.h>
-#include <FS.h>
-#include <SD.h>
+#include <NimBLEDevice.h>
 
-#include "S98TimerPlayer.hpp"
-#include "AdpcmPlayer.hpp"
-#include "RhythmController.hpp"
-#include "config.h"  // ESP32-S3 ピン定義
-
-S98TimerPlayer player;
+NimBLEServer* pServer = nullptr;
 
 void setup() {
     Serial.begin(115200);
-    while (!Serial) delay(10);
-    Serial.println("YMF288Duo S98 TimerPlayer 起動");
+    delay(500);
+    Serial.println("=== BLEアドバタイズ デバッグ開始（setName対応） ===");
 
-    if (!SD.begin(PIN_SD_CS)) {
-        Serial.println("SDカード初期化失敗");
-        while (1);
-    }
+    NimBLEDevice::init("YMF288BLE_Test");
+    Serial.println("✅ NimBLEDevice 初期化 OK");
 
-    File s98File = SD.open("/music/test.s98");
-    if (!s98File) {
-        Serial.println("S98ファイル読み込み失敗");
-        while (1);
-    }
+    pServer = NimBLEDevice::createServer();
+    Serial.println("✅ サーバ作成 OK");
 
-    AdpcmPlayer::begin();
-    RhythmController::begin();
+    NimBLEService* pService = pServer->createService("1234");
+    Serial.println("✅ サービス作成 OK");
 
-    player.begin(s98File);
-    player.start();
+    NimBLECharacteristic* pChar = pService->createCharacteristic(
+        "abcd",
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
+    );
+    pChar->setValue("Hello BLE!");
+    Serial.println("✅ キャラクタリスティック作成 OK");
 
-    Serial.println("S98再生開始（タイマー割り込み）");
+    pService->start();
+    Serial.println("✅ サービス開始 OK");
+
+    NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
+    pAdvertising->addServiceUUID("1234");
+    pAdvertising->setName("YMF288BLE_Test");  // 明示的に名前をアドバタイズに含める
+    pAdvertising->start();
+    Serial.println("✅ アドバタイズ開始 OK（iPhoneから見えるはず）");
 }
 
 void loop() {
-    // メインループでは何もしない（非ブロッキング再生）
+    // BLE処理はバックグラウンドで継続
 }

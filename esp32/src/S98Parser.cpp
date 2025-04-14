@@ -21,6 +21,10 @@ bool S98Parser::isLoopPoint() const {
     return loopDetected;
 }
 
+S98Header S98Parser::getHeader() const {
+    return header;
+}
+
 bool S98Parser::readHeader() {
     if (!s98File) return false;
     s98File.seek(0);
@@ -54,10 +58,10 @@ bool S98Parser::parseNextCommand() {
         loopDetected = true;
         return true;
     } else if (cmd == 0xFD) {
-        if (onWaitCommand) onWaitCommand(735);  // 60Hz frame wait
+        if (onWaitCommand) onWaitCommand(1);
         return true;
     } else if (cmd == 0xFC) {
-        if (onWaitCommand) onWaitCommand(882);  // 50Hz frame wait
+        if (onWaitCommand) onWaitCommand(1);
         return true;
     } else if ((cmd & 0xF8) == 0x00) {
         uint8_t addr = s98File.read();
@@ -66,7 +70,6 @@ bool S98Parser::parseNextCommand() {
         currentPos += 2;
         return true;
     } else {
-        // 未対応 or 拡張コマンド
         return false;
     }
 }

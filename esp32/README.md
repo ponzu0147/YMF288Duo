@@ -28,8 +28,7 @@ esp32/
 │   └── RhythmController.cpp/.h  # RhythmPlayerとYMF288Driverを自動切替で制御
 │
 ├── include/
-│   └── config.h                 # 共通設定：ピンアサイン（ESP32用）
-│   └── config_s3.h              # 共通設定：ピンアサイン（ESP32-S3用、※本日追加）
+│   └── config.h              # 共通設定：ピンアサイン（ESP32-S3用、※本日追加）
 │   └── s98.h                    # s98ファイル解析用の構造体定義
 │   └── ymf288.h                 # YMF288ドライバ実装用の構造体定義
 │

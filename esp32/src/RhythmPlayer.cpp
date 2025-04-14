@@ -1,6 +1,6 @@
 #include "RhythmPlayer.hpp"
+#include "AudioWavPlayer.hpp"
 #include <SD.h>
-#include <Audio.h>  // Arduino用の軽量WAV再生ライブラリなどに差し替え可
 
 namespace {
     const char* romPaths[] = {
@@ -12,30 +12,24 @@ namespace {
         "/rom/2608_rim.wav"  // リムショット
     };
 
-    File wavFile;
-    Audio audio;  // 仮想WAV再生クラス（PCM出力付き）
+    AudioWavPlayer audio;
 }
 
 namespace RhythmPlayer {
 
 void begin() {
-    // 初期化処理など（必要に応じて）
+    audio.begin();
 }
 
 void handle(uint8_t addr, uint8_t data) {
-    // リズム音のKey On（0x10 = R#10 = RKonビット）
+    // R#10 = リズムKey Onビット
     if (addr == 0x10) {
         for (int i = 0; i < 6; ++i) {
             if (data & (1 << i)) {
-                if (wavFile) wavFile.close();
-                wavFile = SD.open(romPaths[i]);
-                if (wavFile) {
-                    audio.begin();
-                    audio.play(wavFile);
-                }
+                audio.play(romPaths[i]);
             }
         }
     }
-    // 音量レジスタ（0x11〜1D）なども対応可能（将来的に）
+    // 音量制御（R#11〜1D）は未対応（必要に応じて拡張可）
 }
 }
