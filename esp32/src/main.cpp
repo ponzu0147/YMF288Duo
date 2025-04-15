@@ -1,6 +1,6 @@
 #include <Arduino.h>
-#include "RhythmManager.h"
-#include "RhythmTestRunner.h"
+#include "RhythmManager.hpp"
+#include "RhythmTestRunner.hpp"
 
 RhythmManager rhythm;
 RhythmTestRunner testRunner;

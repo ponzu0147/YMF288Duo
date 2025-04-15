@@ -1,5 +1,5 @@
 #pragma once
-#include "RhythmManager.h"
+#include "RhythmManager.hpp"
 
 class RhythmTestRunner {
 public:

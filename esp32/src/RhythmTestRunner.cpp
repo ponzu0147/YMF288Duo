@@ -1,4 +1,4 @@
-#include "RhythmTestRunner.h"
+#include "RhythmTestRunner.hpp"
 #include <Arduino.h>
 
 void RhythmTestRunner::begin(RhythmManager* manager) {

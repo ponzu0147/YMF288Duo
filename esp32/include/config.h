@@ -37,3 +37,5 @@
 #define PIN_BTN_PLAY     36  // 再生／一時停止ボタン
 
 // 必要に応じて内部プルアップを使ってINPUT_PULLUPで利用
+#define PIN_HW_DETECT 39  // 例: GPIO39（ADC1_CH3）
+
