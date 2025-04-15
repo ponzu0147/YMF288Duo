@@ -5,12 +5,13 @@
 #include <Arduino.h>
 #include <SD.h>
 #include <SPI.h>
+#include "config.h"
 
 namespace SDHelper {
-    const int SD_CS_PIN = 5;  // GPIO5（CS）
+    const int SD_CS_PIN = PIN_SD_CS;  // GPIO5（CS）
 
     inline bool begin() {
-        SPI.begin(18, 19, 23);  // SCK=18, MISO=19, MOSI=23（VSPI）
+        SPI.begin(PIN_SD_SCK, PIN_SD_MISO, PIN_SD_MOSI);
         if (!SD.begin(SD_CS_PIN)) {
             Serial.println("[SD] 初期化失敗！");
             return false;
