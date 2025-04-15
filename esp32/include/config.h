@@ -1,43 +1,39 @@
 #pragma once
 
-// ========================
-// YMF288 接続ピン定義（S3用）
-// ========================
-#define PIN_YMF_WR     6
-#define PIN_YMF_CS     7
-#define PIN_YMF_A0     15
-#define PIN_YMF_A1     16
+// ===== クロック =====
+#define PIN_CLK_MCLK     0    // マスタークロック（外部水晶EXO3 15.9744MHzなど）
 
-#define PIN_YMF_D0     9
-#define PIN_YMF_D1     10
-#define PIN_YMF_D2     11
-#define PIN_YMF_D3     12
-#define PIN_YMF_D4     13
-#define PIN_YMF_D5     14
-#define PIN_YMF_D6     17
-#define PIN_YMF_D7     18
+// ===== DAC I2S出力（PCM5102A等） =====
+#define PIN_I2S_BCK      26
+#define PIN_I2S_LRCK     25
+#define PIN_I2S_DATA     22
 
-// ========================
-// I2S（DAC）出力ピン定義（ESP32-S3動作実績あり）
-// ========================
-#define PIN_I2S_BCK     42  // Bit Clock
-#define PIN_I2S_LRCK    41  // Word Select
-#define PIN_I2S_DATA    2   // Serial Data
+// ===== YMF288制御ピン（例） =====
+#define PIN_YMF_CS       4
+#define PIN_YMF_WR       2
+#define PIN_YMF_A0       15
+#define PIN_YMF_A1       16
+#define PIN_YMF_D0       32
+#define PIN_YMF_D1       33
+#define PIN_YMF_D2       27
+#define PIN_YMF_D3       14
+#define PIN_YMF_D4       12
+#define PIN_YMF_D5       13
+#define PIN_YMF_D6       23
+#define PIN_YMF_D7       19
 
-// ========================
-// SDカード SPI接続ピン定義
-// ========================
-#define PIN_SD_CS      38
-#define PIN_SD_MOSI    35
-#define PIN_SD_MISO    36
-#define PIN_SD_SCK     37
+// ===== SDカード（SPI接続） =====
+#define PIN_SD_CS        5
+#define PIN_SD_MOSI      18
+#define PIN_SD_MISO      21
+#define PIN_SD_SCK       17
 
-// ========================
-// ハードウェア検出ピン
-// ========================
-#define PIN_HW_DETECT   8
+// ===== スピーカーアンプ電源制御（任意） =====
+// #define PIN_AMP_EN    xx
 
-// ========================
-// デバッグLEDなど
-// ========================
-#define PIN_LED         48
+// ===== デバッグ用ボタン入力（3つ） =====
+#define PIN_BTN_NEXT     34  // 曲送りボタン
+#define PIN_BTN_PREV     35  // 曲戻りボタン
+#define PIN_BTN_PLAY     36  // 再生／一時停止ボタン
+
+// 必要に応じて内部プルアップを使ってINPUT_PULLUPで利用
