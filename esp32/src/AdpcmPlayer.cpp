@@ -1,6 +1,6 @@
 #include "AdpcmPlayer.hpp"
 #include "a2p.h"  // ADPCM→PCM変換ライブラリ
-
+#include "config.h"
 namespace {
     constexpr int I2S_SAMPLE_RATE = 22050;
     constexpr i2s_port_t I2S_PORT = I2S_NUM_0;
@@ -24,14 +24,23 @@ void begin() {
         .use_apll = false
     };
     i2s_pin_config_t pin_config = {
-        .bck_io_num = 26,
-        .ws_io_num = 25,
-        .data_out_num = 22,
+        .bck_io_num = PIN_I2S_BCK,
+        .ws_io_num = PIN_I2S_LRCK,
+        .data_out_num = PIN_I2S_DATA,
         .data_in_num = I2S_PIN_NO_CHANGE
     };
 
-    i2s_driver_install(I2S_PORT, &i2s_config, 0, nullptr);
-    i2s_set_pin(I2S_PORT, &pin_config);
+    i2s_driver_uninstall(I2S_NUM_0);  // 安全のため明示的に解放
+
+    esp_err_t err = i2s_driver_install(I2S_NUM_0, &i2s_config, 0, nullptr);
+    if (err != ESP_OK) {
+        Serial.printf("❌ i2s_driver_install failed: %d\n", err);
+    }
+    
+    err = i2s_set_pin(I2S_NUM_0, &pin_config);
+    if (err != ESP_OK) {
+        Serial.printf("❌ i2s_set_pin failed: %d\n", err);
+    }    
 }
 
 void feed(uint8_t adpcmByte) {

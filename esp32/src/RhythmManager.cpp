@@ -2,12 +2,12 @@
 #include <string.h>
 
 void RhythmManager::begin() {
-    bd.begin();
-    sd.begin();
-    hh.begin();
-    tom.begin();
-    rim.begin();
-    top.begin();
+    static bool i2sInitialized = false;
+    if (!i2sInitialized) {
+        bd.begin();           // ← WavPlayer::begin() 呼び出し
+        i2sInitialized = true;
+    }
+    // 他のchはbegin不要（I2S共有）
 }
 
 void RhythmManager::loop() {
@@ -52,10 +52,12 @@ void RhythmManager::playDirect(const char* filepath, float volL, float volR) {
 }
 
 void RhythmManager::decodeVolume(uint8_t reg, float& outL, float& outR) const {
+    const float MASTER_VOLUME = 0.01f;  // 全体スケーリング係数
+
     uint8_t pan = (reg >> 5) & 0x07;
     float base = (31 - (reg & 0x1F)) / 31.0f;
     float total = (31 - totalLevel) / 31.0f;
-    float vol = base * total;
+    float vol = base * total * MASTER_VOLUME;
 
     switch (pan) {
         case 0x01: outL = vol; outR = 0.0f; break;
@@ -63,3 +65,4 @@ void RhythmManager::decodeVolume(uint8_t reg, float& outL, float& outR) const {
         default:   outL = outR = vol; break;
     }
 }
+

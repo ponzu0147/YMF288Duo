@@ -1,5 +1,6 @@
 #include "RhythmTestRunner.hpp"
 #include <Arduino.h>
+#include <string.h>
 
 void RhythmTestRunner::begin(RhythmManager* manager) {
     rhythm = manager;

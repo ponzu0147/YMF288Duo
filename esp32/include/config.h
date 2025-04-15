@@ -4,9 +4,13 @@
 #define PIN_CLK_MCLK     0    // マスタークロック（外部水晶EXO3 15.9744MHzなど）
 
 // ===== DAC I2S出力（PCM5102A等） =====
-#define PIN_I2S_BCK      26
-#define PIN_I2S_LRCK     25
-#define PIN_I2S_DATA     22
+// config.h
+#ifndef PIN_I2S_BCK
+#define PIN_I2S_BCK 6
+#endif
+
+#define PIN_I2S_LRCK     7
+#define PIN_I2S_DATA     8
 
 // ===== YMF288制御ピン（例） =====
 #define PIN_YMF_CS       4
@@ -23,10 +27,10 @@
 #define PIN_YMF_D7       19
 
 // ===== SDカード（SPI接続） =====
-#define PIN_SD_CS        5
-#define PIN_SD_MOSI      18
-#define PIN_SD_MISO      21
-#define PIN_SD_SCK       17
+#define PIN_SD_CS        10
+#define PIN_SD_MOSI      11
+#define PIN_SD_MISO      13
+#define PIN_SD_SCK       12
 
 // ===== スピーカーアンプ電源制御（任意） =====
 // #define PIN_AMP_EN    xx

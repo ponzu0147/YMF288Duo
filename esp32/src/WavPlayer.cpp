@@ -1,90 +1,87 @@
+
 #include "WavPlayer.hpp"
+#include <AudioTools.h>
+#include <Arduino.h>
 #include <SD.h>
-#include <driver/i2s.h>
+#include <algorithm>  // std::clamp に必要
+
+I2SStream i2s;
+WAVDecoder decoder;
+StreamCopy copier;
 
 void WavPlayer::begin() {
-    i2s_config_t config = {
-        .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
-        .sample_rate = 44100,
-        .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
-        .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
-        .communication_format = I2S_COMM_FORMAT_STAND_I2S,
-        .intr_alloc_flags = 0,
-        .dma_buf_count = 8,
-        .dma_buf_len = 1024,
-        .use_apll = false,
-        .tx_desc_auto_clear = true,
-        .fixed_mclk = 0
-    };
-
-    i2s_pin_config_t pin_config = {
-        .bck_io_num = 26,
-        .ws_io_num = 25,
-        .data_out_num = 22,
-        .data_in_num = I2S_PIN_NO_CHANGE
-    };
-
-    i2s_driver_install(I2S_NUM_0, &config, 0, NULL);
-    i2s_set_pin(I2S_NUM_0, &pin_config);
-}
-
-bool WavPlayer::play(const char* filepath) {
-    return playStereo(filepath, 1.0f, 1.0f); // モノラル → ステレオ中央定位として再生
+    auto config = i2s.defaultConfig();
+    config.bits_per_sample = 16;
+    config.sample_rate = 44100;
+    config.channels = 2;
+    config.pin_bck = 26;
+    config.pin_ws = 25;
+    config.pin_data = 22;
+    i2s.begin(config);
 }
 
 bool WavPlayer::playStereo(const char* filepath, float volL, float volR) {
     stop();
-
     wavFile = SD.open(filepath);
-    if (!wavFile) return false;
+    if (!wavFile) {
+        Serial.printf("❌ WAVファイルオープン失敗: %s\n", filepath);
+        return false;
+    }
 
-    uint8_t skip[44];
-    wavFile.read(skip, 44); // WAVヘッダーをスキップ
+    if (!decoder.begin(wavFile)) {
+        Serial.println("❌ WAVデコーダ初期化失敗");
+        wavFile.close();
+        return false;
+    }
 
+    playing = true;
     volumeL = volL;
     volumeR = volR;
-    playing = true;
     return true;
 }
 
 void WavPlayer::stop() {
     if (playing) {
+        decoder.end();
         wavFile.close();
         playing = false;
+        Serial.println("⏹️ 再生停止");
     }
-}
-
-bool WavPlayer::isPlaying() const {
-    return playing;
 }
 
 void WavPlayer::loop() {
     if (!playing) return;
 
-    const size_t samples = 256;
-    int16_t monoBuf[samples];
-    int16_t stereoBuf[samples * 2];
+    int16_t samples[256];
+    int samplesRead = decoder.read(samples, 256);
 
-    size_t bytesRead = wavFile.read((uint8_t*)monoBuf, sizeof(monoBuf));
-    if (bytesRead == 0) {
+    if (samplesRead == 0) {
         stop();
+        Serial.println("🔇 再生完了（EOF）");
         return;
     }
 
-    size_t count = bytesRead / 2;
-    for (size_t i = 0; i < count; ++i) {
-        float l = monoBuf[i] * volumeL;
-        float r = monoBuf[i] * volumeR;
+    // グローバルゲインで音量抑制
+    float globalGain = 0.3f;
 
-        if (l > 32767.0f) l = 32767.0f;
-        if (l < -32768.0f) l = -32768.0f;
-        if (r > 32767.0f) r = 32767.0f;
-        if (r < -32768.0f) r = -32768.0f;
+    // ステレオバッファへ変換（音量適用＆クリッピング）
+    int16_t stereoBuffer[512];
+    for (int i = 0; i < samplesRead; ++i) {
+        int32_t left  = static_cast<int32_t>(samples[i] * volumeL * globalGain);
+        int32_t right = static_cast<int32_t>(samples[i] * volumeR * globalGain);
 
-        stereoBuf[2 * i] = (int16_t)l;
-        stereoBuf[2 * i + 1] = (int16_t)r;
+        stereoBuffer[i * 2]     = std::clamp(left, -32768, 32767);
+        stereoBuffer[i * 2 + 1] = std::clamp(right, -32768, 32767);
     }
 
-    size_t bytesWritten;
-    i2s_write(I2S_NUM_0, stereoBuf, count * 4, &bytesWritten, portMAX_DELAY);
+    // I2Sへ出力
+    size_t bytesWritten = i2s.write(stereoBuffer, samplesRead * 2 * sizeof(int16_t));
+
+    // ログ出力
+    Serial.printf("🎧 %dサンプル読み込み、📤 %dバイト出力
+", samplesRead, (int)bytesWritten);
+}
+
+bool WavPlayer::isPlaying() const {
+    return playing;
 }
