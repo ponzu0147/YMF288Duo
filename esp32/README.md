@@ -1,6 +1,6 @@
-# ESP32サブプロジェクト（YMF288Duo）
+# ESP32 サブプロジェクト（YMF288Duo）
 
-このフォルダは、ESP32を用いたYMF288Duo制御マイコンのコードを格納します。
+このフォルダは、ESP32 を用いた YMF288Duo 制御マイコンのコードを格納します。
 
 ## 🔧 使用環境
 
@@ -13,35 +13,52 @@
 ```
 esp32/
 ├── src/
-│   ├── main.cpp                 # エントリーポイント：setup()/loop()、初期化とモード遷移制御
-│   ├── S98Player.cpp/.h         # S98再生処理クラス：S98Header解析、タイミング管理、再生ロジック
-│   ├── SDHelper.cpp/.h          # microSDカード操作ヘルパ：ファイル列挙、読み出しユーティリティ
-│   ├── YMF288Driver.cpp/.h      # YMF288アクセス用ドライバ：レジスタI/O、DAC/I2S出力、バス制御（※ESP32-S3対応済）
-│   ├── ModeManager.cpp/.h       # 動作モード管理：スタンドアロン／BLE制御の切替ロジック
-│   ├── BLEReceiver.cpp/.h       # BLE通信制御：iOSアプリとのBLEパケット受信＆解析
-│   ├── OTAUpdate.cpp/.h         # OTAアップデート管理：Wi-Fi経由のファームウェア更新処理
-│   ├── CommandParser.cpp/.h     # 制御コマンド解析：BLEやUART経由のJSON/バイナリコマンド対応
-│   ├── BufferStream.cpp/.h      # S98やコマンド処理用のリングバッファ/ストリーム実装
-│   ├── Logger.cpp/.h            # シリアル出力＆デバッグログ管理（出力レベル切替・タグ付き）
-│   ├── RhythmPlayer.cpp/.h      # リズム音源のWAV再生エミュレーション（※ハード非接続時のみ）
-│   ├── AdpcmPlayer.cpp/.h       # ADPCM 1音再生：a2p.c変換 + I2S出力
-│   └── RhythmController.cpp/.h  # RhythmPlayerとYMF288Driverを自動切替で制御
+│   ├── main.cpp                  # エントリーポイント（✔）
+│   ├── S98Parser.cpp             # S98ファイル解析、コマンド抽出処理（✔）
+│   ├── S98TimerPlayer.cpp        # タイマ再生処理（✔）
+│   ├── SDHelper.cpp              # SDカードファイル列挙・補助ユーティリティ（✔）
+│   ├── RhythmManager.cpp         # 複数リズム音源管理（✔）
+│   ├── RhythmController.cpp      # RhythmPlayerとハード再生の切替（✔）
+│   ├── RhythmPlayer.cpp          # WAVベースソフト再生（✔）
+│   ├── RhythmTestRunner.cpp      # リズム再生パターンの検証・テスト実行（✔）
+│   ├── WavPlayer.cpp             # WAV 1音再生 + パン制御（✔）
+│   ├── AudioWavPlayer.cpp        # 上位互換：同時複数再生対応（✔）
+│   ├── AdpcmPlayer.cpp           # ADPCM 1音再生（✔）
+│   ├── Ymf288Driver.cpp          # YMF288制御ドライバ（✔）
+│   ├── ModeManager.cpp           # モード（スタンドアロン / BLE）切替制御（未実装）
+│   ├── BLEReceiver.cpp           # BLE受信処理、NimBLE通信（未実装）
+│   ├── OTAUpdate.cpp             # OTAアップデート制御（未実装）
+│   ├── CommandParser.cpp         # UART/BLEコマンド受信・解析（未実装）
+│   ├── Logger.cpp                # デバッグログ出力（未実装）
+│   └── BufferStream.cpp          # コマンド/S98用リングバッファ（未実装）
 │
 ├── include/
-│   └── config.h              # 共通設定：ピンアサイン（ESP32-S3用、※本日追加）
-│   └── s98.h                    # s98ファイル解析用の構造体定義
-│   └── ymf288.h                 # YMF288ドライバ実装用の構造体定義
+│   ├── config.h                  # 共通設定・ピンアサイン（✔）
+│   ├── s98.h                     # S98ファイル構造体定義（✔）
+│   ├── Ymf288Driver.hpp          # YMF288ドライバ定義（✔）
+│   ├── WavPlayer.hpp             # WavPlayer定義（✔）
+│   ├── SDHelper.hpp              # SDヘルパ定義（✔）
+│   ├── S98Parser.hpp             # S98パーサ定義（✔）
+│   ├── S98Player.h               # S98Player定義（✔）
+│   ├── S98TimerPlayer.hpp        # S98タイマプレイヤー定義（✔）
+│   ├── RhythmPlayer.hpp          # Rhythm再生定義（✔）
+│   ├── RhythmManager.hpp         # 複数リズム管理定義（✔）
+│   ├── RhythmController.hpp      # 自動切替定義（✔）
+│   ├── RhythmTestRunner.hpp      # テスト再生制御定義（✔）
+│   ├── AudioWavPlayer.hpp        # 複数同時再生対応定義（✔）
+│   ├── AdpcmPlayer.hpp           # ADPCMプレイヤー定義（✔）
+│   └── a2p.h                     # ADPCMテーブルヘッダ（✔）
 │
 ├── lib/
-│   └── （必要に応じて外部ライブラリや自作ライブラリを追加）
-│       └── 例：SDfat, ArduinoJson, NimBLE-Arduino 等
+│   └── （外部ライブラリまたは自作ライブラリを必要に応じて追加）
+│       └── 例：SDfat, ArduinoJson, NimBLE-Arduino など
 │
-├── platformio.ini              # PlatformIOビルド設定：esp32dev / esp32s3 両対応に拡張
+├── platformio.ini              # ビルド設定（✔）
 ```
 
 ## 🚀 ビルドと書き込み
 
-- ビルド: `PlatformIO: Build`（▷）
+- ビルド: `PlatformIO: Build`
 - 書き込み: `PlatformIO: Upload`
 - モニタ: `PlatformIO: Monitor`
 
@@ -74,14 +91,17 @@ esp32/
 
 ---
 
-## 📝 更新履歴
+## 📍 更新履歴
+
+- **2025-04-16**
+  - `WavPlayer` において audio-tools 非依存のI2S再生実装に切り替え
+  - `stop()` に `i2s_zero_dma_buffer()` を追加し、再トリガ時のプチノイズを軽減
 
 - **2025-04-14**
-  - 🎉 ESP32-S3-DevKitC-1 への正式対応（`config_s3.h`, `env:esp32s3` 追加）
+  - ESP32-S3-DevKitC-1 への正式対応（`config_s3.h`, `env:esp32s3` 追加）
   - `Ymf288Driver` の `setDataBus()` をピン定義に従い再実装（S3向け）
   - `RhythmPlayer`, `AdpcmPlayer`, `RhythmController` クラスの新規作成
   - S98コマンドパーサ `S98Parser` を実装、mainループと連携
-  - ピンマップ表をMarkdownで整理（日本語文字化け対策）
 
 - **2025-04-13**
   - ディレクトリ構成を詳細化、各ファイルの役割を明記
