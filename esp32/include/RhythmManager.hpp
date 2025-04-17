@@ -1,6 +1,6 @@
 #pragma once
-
-#include "WavPlayer.hpp"
+#include <Arduino.h>
+#include "RhythmChannel.hpp"
 
 class RhythmManager {
 public:
@@ -11,11 +11,9 @@ public:
     void playDirect(const char* filepath, float volL, float volR);
 
 private:
-    WavPlayer bd, sd, hh, tom, rim, top;
-
+    RhythmChannel bd, sd, hh, tom, rim, top;
     uint8_t totalLevel = 0;
-    uint8_t bdReg = 0, sdReg = 0, hhReg = 0;
-    uint8_t tomReg = 0, rimReg = 0, topReg = 0;
+    uint8_t bdReg = 0, sdReg = 0, tomReg = 0, topReg = 0, hhReg = 0, rimReg = 0;
 
     void decodeVolume(uint8_t reg, float& outL, float& outR) const;
 };
