@@ -1,5 +1,8 @@
+#include <Arduino.h>
 #include "WavPlayer.hpp"
+#include "RhythmMixer.hpp"
 #include <driver/i2s.h>
+#include <math.h>
 
 #define I2S_BCLK 6
 #define I2S_LRC  7
@@ -7,19 +10,13 @@
 
 uint8_t* WavPlayer::wavData[6] = {nullptr};
 size_t WavPlayer::wavSize[6] = {0};
+RhythmMixer mixer;
 
 void WavPlayer::setWavBuffers(uint8_t* data[6], size_t size[6]) {
     for (int i = 0; i < 6; ++i) {
         wavData[i] = data[i];
         wavSize[i] = size[i];
     }
-}
-
-void WavPlayer::playFromMemory(int index) {
-    if (index < 0 || index >= 6 || !wavData[index]) return;
-
-    size_t bytes_written;
-    i2s_write(I2S_NUM_0, wavData[index], wavSize[index], &bytes_written, portMAX_DELAY);
 }
 
 void WavPlayer::begin() {
@@ -50,6 +47,7 @@ void WavPlayer::begin() {
     i2s_driver_install(I2S_NUM_0, &config, 0, NULL);
     i2s_set_pin(I2S_NUM_0, &pins);
 
+    mixer.begin();
     Serial.println("✅ I2S 初期化完了");
     initialized = true;
 }
@@ -88,4 +86,32 @@ void WavPlayer::playFromMemoryStereo(int index, float volL, float volR) {
         size_t written;
         i2s_write(I2S_NUM_0, silence, sizeof(silence), &written, portMAX_DELAY);
     }
+}
+
+// L:0x01, R:0x02, C:0x03（0.707, 0.707）
+// volume = 0〜127
+void WavPlayer::playWithPan(int index, uint8_t pan, uint8_t volume) {
+    float scale = (127 - volume) / 127.0f;
+    float volL = 0.0f, volR = 0.0f;
+
+    switch (pan) {
+        case 0x01: volL = 1.0f; volR = 0.0f; break;
+        case 0x02: volL = 0.0f; volR = 1.0f; break;
+        case 0x03: volL = 0.707f; volR = 0.707f; break;
+        default: volL = volR = 0.0f; break;
+    }
+
+    volL *= scale;
+    volR *= scale;
+
+    playFromMemoryStereo(index, volL, volR);
+}
+
+void WavPlayer::mixRhythmOutput(size_t count) {
+    mixer.output(count);
+}
+
+void WavPlayer::queueRhythm(int index, uint8_t pan, uint8_t volume) {
+    if (!hasData(index)) return;
+    mixer.setChannel(index, reinterpret_cast<const int16_t*>(wavData[index]), wavSize[index] / 2, pan, volume);
 }

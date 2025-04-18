@@ -1,6 +1,5 @@
 #pragma once
-#include <Arduino.h>
-#include "RhythmChannel.hpp"
+#include <stdint.h>
 
 class RhythmManager {
 public:
@@ -8,12 +7,12 @@ public:
     void loop();
     void play(uint8_t keyOnBits);
     void setVolume(uint8_t addr, uint8_t data);
-    void playDirect(const char* filepath, float volL, float volR);
+    void playDirect(const char* filepath, float volL, float volR); // 追加
 
 private:
-    RhythmChannel bd, sd, hh, tom, rim, top;
-    uint8_t totalLevel = 0;
-    uint8_t bdReg = 0, sdReg = 0, tomReg = 0, topReg = 0, hhReg = 0, rimReg = 0;
+    void decodeVolume(int index, float& outL, float& outR) const;
 
-    void decodeVolume(uint8_t reg, float& outL, float& outR) const;
+    uint8_t volumeTable[6] = {0x10, 0x10, 0x10, 0x10, 0x10, 0x10};
+    uint8_t panMask[6]     = {0x03, 0x03, 0x03, 0x03, 0x03, 0x03};
+    uint8_t masterVolume   = 0x00;
 };

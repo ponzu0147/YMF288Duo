@@ -1,0 +1,15 @@
+{
+  "name": "ESP32 PlatformIO DevContainer",
+  "build": {
+    "dockerfile": "../Dockerfile"
+  },
+  "extensions": [
+    "platformio.platformio-ide",
+    "ms-vscode.cpptools"
+  ],
+  "settings": {
+    "platformio-ide.useBuiltinPIOCore": true
+  },
+  "remoteUser": "root"
+}
+
